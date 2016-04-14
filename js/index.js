@@ -58,8 +58,8 @@ window.onload = function() {
     };
 
     Particle.prototype.update = function() {
-        var step = 50;
-        if(count == step){
+        var step = 100;
+        if(count > step){
             nextColStep[0] = (parseInt(this.color.substr(1,2),"16")-Math.floor(Math.random() * 256))/step;
             nextColStep[1] = (parseInt(this.color.substr(3,2),"16")-Math.floor(Math.random() * 256))/step;
             nextColStep[2] = (parseInt(this.color.substr(5,2),"16")-Math.floor(Math.random() * 256))/step;
@@ -71,15 +71,22 @@ window.onload = function() {
             this.position.x += (clickPoint.x - this.position.x) / this.speed;
             this.position.y += (clickPoint.y - this.position.y) / this.speed;
         }
-        this.color = '#'+('0'+(parseInt(this.color.substr(1,2),"16")-parseInt(nextColStep[0])).toString(16)).slice(-2)+('0'+(parseInt(this.color.substr(3,2),"16")-parseInt(nextColStep[1])).toString(16)).slice(-2)+('0'+(parseInt(this.color.substr(5,2),"16")-parseInt(nextColStep[2])).toString(16)).slice(-2);
-        // console.log('['+count+']'+(parseInt(this.color.substr(1,2),"16"))+' '+(-parseInt(nextColStep[0]*count))+','+(parseInt(this.color.substr(3,2),"16"))+' '+(-parseInt(nextColStep[1]*count))+','+(parseInt(this.color.substr(5,2),"16"))+' '+(-parseInt(nextColStep[2]*count)));
-        // console.log(this.color);
+        var dist = Math.sqrt(Math.pow((clickPoint.x - this.position.x),2)+Math.pow((clickPoint.y - this.position.y),2));
+        var colRatio = Math.floor(dist/(Math.max(canvas.width, canvas.height)/100));
+        // console.log('dist:'+dist+', cR: '+colRatio);
+        if(!isMouseDown){
+            this.color = '#'+('0'+(parseInt(this.color.substr(1,2),"16")-parseInt(nextColStep[0])*colRatio).toString(16)).slice(-2)
+                            +('0'+(parseInt(this.color.substr(3,2),"16")-parseInt(nextColStep[1])*colRatio).toString(16)).slice(-2)
+                            +('0'+(parseInt(this.color.substr(5,2),"16")-parseInt(nextColStep[2])*colRatio).toString(16)).slice(-2);
+            // console.log('['+count+']'+(parseInt(this.color.substr(1,2),"16"))+' '+(-parseInt(nextColStep[0]*count))+','+(parseInt(this.color.substr(3,2),"16"))+' '+(-parseInt(nextColStep[1]*count))+','+(parseInt(this.color.substr(5,2),"16"))+' '+(-parseInt(nextColStep[2]*count)));
+            // console.log(this.color);
+            count += colRatio;
+        }
         this.draw();
-        count++;
         // console.log(count);
     };
 
-    var particle = new Particle(15, '#D0A000', 5);
+    var particle = new Particle(15, '#eeeeee', 5);
 
     // 再描画
     var loop = function() {
@@ -92,7 +99,7 @@ window.onload = function() {
 
     var rect = canvas.getBoundingClientRect();
 
-    // イベントリスナ（マウス移動）
+    // カーソル移動
     canvas.addEventListener('mousemove', function(e) {
         var mouseX = e.clientX - rect.left;
         var mouseY = e.clientY - rect.top;
@@ -102,13 +109,19 @@ window.onload = function() {
 
     }, false);
 
-    // イベントリスナ（マウス押下）
+    // クリックしっぱなし
     canvas.addEventListener('mousedown', function(e) {
         isMouseDown = true;
     }, false);
 
-    // イベントリスナ（マウス押上）
+    // クリック離す
     canvas.addEventListener('mouseup', function(e) {
         isMouseDown = false;
     }, false);
+
+    // 画面外にマウスを移動
+    canvas.addEventListener('mouseout', function(e) {
+        isMouseDown = false;
+    }, false);
+
 };
